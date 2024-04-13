@@ -39,5 +39,51 @@ def query_handler():
         response_data.append(result_object)
     return jsonify(response_data)
 
+@app.route('/add_stroke', methods=['POST'])
+def add_stroke():
+    # Retrieve word and stroke data from the request
+    word = request.json.get('word')
+    strokes = request.json.get('strokes')
+    # print(strokes)
+    # print(word)
+    where_filter = {
+        "path": ["nameOfImage"],
+        "operator": "Equal",
+        "valueText": word,
+    }
+    query_result = (
+        client.query
+        .get("ImageStrokeDoodle", ["nameOfImage","strokeOfImage"])
+        .with_near_text({
+            "concepts": [word],
+        })
+        .with_where(where_filter)
+        .with_additional(["id"])
+        .do()
+    )
+    # print(query_result)
+    
+    # Check if there are any results
+    data = query_result.get('data', {}).get('Get', {}).get('ImageStrokeDoodle', [])
+    # print(len(data[0].get('strokeOfImage', [])))
+    # print(data)
+    if len(data) > 0:
+        print("Updating existing stroke")
+        # Update the existing stroke data
+        existing_strokes = data[0].get('strokeOfImage', [])
+        existing_strokes.append(strokes)
+        uuid=data[0].get('_additional', {}).get('id', '')
+        # print(uuid)
+        client.data_object.update(
+            class_name="ImageStrokeDoodle",
+            uuid=uuid,
+            data_object={"strokeOfImage": existing_strokes}
+        )
+    else:
+        print("Adding new stroke")
+        # Add a new stroke data
+        client.data_object.create(class_name="ImageStrokeDoodle", data_object={"nameOfImage": word, "strokeOfImage": [strokes]})
+    return jsonify({'message': 'Stroke added successfully'})
+
 if __name__ == '__main__':
     app.run(debug=True)
