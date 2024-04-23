@@ -32,6 +32,7 @@ def query_handler_doodle():
     for result_object in response.objects:
         # Append the entire imageStroke array to the response
         response_data.append(result_object.properties)
+    print(response_data)
     return jsonify(response_data)
     
 
@@ -61,6 +62,7 @@ def add_stroke_doodle():
         # Add a new stroke data
         imageStrokeDoodle=client.collections.get("ImageStrokeDoodle")
         uuid=imageStrokeDoodle.data.insert({"nameOfImage": word, "strokeOfImage": [strokes]})
+    print(f"Stroke added for '{word}'")
     return jsonify({'message': 'Stroke added successfully'})
 
 @app.route('/weaviate/')
@@ -77,6 +79,7 @@ def query_handler_weaviate():
     for result_object in response.objects:
         # Append the entire imageStroke array to the response
         response_data.append(result_object.properties)
+    print(response_data)
     return jsonify(response_data)
 
 if __name__ == '__main__':
