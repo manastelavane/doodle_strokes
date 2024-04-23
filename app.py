@@ -16,12 +16,13 @@ client = weaviate.Client(
 )
 
 
-@app.route('/')
+@app.route('/doodle/')
 def query_handler():
     # Retrieve query parameters from the request
     query_word = request.args.get('query')
     limit = int(request.args.get('limit', 1))  # Default limit is 1 if not provided
     # Perform a text-based similarity search with the query word
+    print(f"Querying Weaviate for '{query_word}' with limit {limit}")
     query_result = (
         client.query
         .get("ImageStrokeDoodle", ["nameOfImage","strokeOfImage"])
@@ -39,13 +40,12 @@ def query_handler():
         response_data.append(result_object)
     return jsonify(response_data)
 
-@app.route('/add_stroke', methods=['POST'])
+@app.route('/doodle/add_stroke', methods=['POST'])
 def add_stroke():
     # Retrieve word and stroke data from the request
     word = request.json.get('word')
     strokes = request.json.get('strokes')
-    # print(strokes)
-    # print(word)
+    print(f"Adding stroke for '{word}'")
     where_filter = {
         "path": ["nameOfImage"],
         "operator": "Equal",
@@ -84,6 +84,31 @@ def add_stroke():
         # Add a new stroke data
         client.data_object.create(class_name="ImageStrokeDoodle", data_object={"nameOfImage": word, "strokeOfImage": [strokes]})
     return jsonify({'message': 'Stroke added successfully'})
+
+@app.route('/weaviate/')
+def query_handler():
+    # Retrieve query parameters from the request
+    query_word = request.args.get('query')
+    limit = int(request.args.get('limit', 1))  # Default limit is 1 if not provided
+    # Perform a text-based similarity search with the query word
+    print(f"Querying Weaviate for '{query_word}' with limit {limit}")
+    query_result = (
+        client.query
+        .get("ImageStroke", ["nameOfImage"])
+        .with_near_text({
+            "concepts": [query_word],
+            "distance": 0.7
+        })
+        .with_limit(limit)
+        .do()
+    )
+    print(query_result)
+    # Extract relevant information from the query result
+    response_data = []
+    for result_object in query_result.get('data', {}).get('Get', {}).get('ImageStroke', []):
+        # Append the entire imageStroke array to the response
+        response_data.append(result_object)
+    return jsonify(response_data)
 
 if __name__ == '__main__':
     app.run(debug=True)
