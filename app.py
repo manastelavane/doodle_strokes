@@ -6,8 +6,8 @@ from weaviate.classes.query import MetadataQuery
 app = Flask(__name__) 
 
 # Initialize Weaviate client
-weaviate_url = "https://turtle-vinci-mtccq694.weaviate.network"
-api_key = "ZElsNdQp6rOcmXzhZe7WuknuVqN6tMyKvSou"
+weaviate_url = "https://turtle-vinci-cqn75su9.weaviate.network"
+api_key = "7yRvzKTqScVYewcwkhYRrMHXVgVOUkNKnyXA"
 
 client = weaviate.connect_to_wcs(
     cluster_url=weaviate_url,
